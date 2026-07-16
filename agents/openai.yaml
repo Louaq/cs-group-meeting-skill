@@ -1,0 +1,4 @@
+interface:
+  display_name: "CS Group Meeting Skill"
+  short_description: "Turn a paper PDF into a sectioned Chinese group-meeting deck."
+  default_prompt: "Use $cs-group-meeting-skill to turn this paper PDF into a Chinese group-meeting deck (文献信息→研究背景→本文贡献→研究方法→实验结果→结论与不足)."
