@@ -1,6 +1,6 @@
 ---
 name: cs-group-meeting-skill
-description: Build a sectioned Chinese group-meeting (组会/文献汇报) PowerPoint deck from a CS paper PDF, using the bundled 汇报模板.pptx. Use when the user provides a paper PDF and wants a full 文献信息→研究背景→本文贡献→研究方法→实验结果→结论与不足 report deck rather than a figure dump: the skill reads the whole paper, summarises it into Chinese talking points, and lays each slide out with 要点框 + 图 + 结果分析 so no slide is ever just one picture. Triggers on 组会PPT, 文献汇报, 论文汇报, paper reading PPT, 把这篇论文做成组会PPT.
+description: "Build a sectioned Chinese group-meeting (组会/文献汇报) PowerPoint deck from a CS paper PDF, using the bundled 汇报模板.pptx. Use when the user provides a paper PDF and wants a full 文献信息→研究背景→本文贡献→研究方法→实验结果→结论与不足 report deck rather than a figure dump: the skill reads the whole paper, summarises it into Chinese talking points, and lays each slide out with 要点框 + 图 + 结果分析 so no slide is ever just one picture. Triggers on 组会PPT, 文献汇报, 论文汇报, paper reading PPT, 把这篇论文做成组会PPT."
 ---
 
 # CS Group Meeting Skill
