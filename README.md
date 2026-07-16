@@ -1,5 +1,7 @@
 # cs-group-meeting-skill
 
+*English version: **[README.en.md](README.en.md)** ｜ 中文（当前）*
+
 把一篇 CS 论文 PDF 变成一份中文组会汇报 PPT——按照实验室 `汇报模板.pptx` 的观感，
 和 `汇报模板2.pptx` 的版式语汇。
 
