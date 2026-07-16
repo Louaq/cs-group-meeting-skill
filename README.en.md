@@ -1,6 +1,6 @@
 # cs-group-meeting-skill
 
-*中文版本：**[README.md](README.md)** ｜ English (current)*
+<p align="center"><i>中文版本：<b><a href="README.md">README.md</a></b> ｜ English (current)</i></p>
 
 Turns a CS paper PDF into a Chinese group-meeting (组会) slide deck — matching the
 look of the lab's `汇报模板.pptx` and the layout vocabulary of `汇报模板2.pptx`.
