@@ -14,6 +14,39 @@
 agent 会读全文、抽图、写 spec、构建、逐页渲染检查。命令行只是它内部调用的工具，
 调试时也可以自己跑。
 
+## 效果示例
+
+以下是同一份真实产出的若干页 —— 输入是 *Adaptive Cross-Feature Fusion Network With
+Inconsistency Guidance for Multi-Modal Brain Tumor Segmentation*（IEEE JBHI 2025）
+的 PDF，输出共 23 页。
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/Snipaste_2026-07-16_13-41-42.png" width="100%"></td>
+    <td width="50%"><img src="assets/Snipaste_2026-07-16_13-41-51.png" width="100%"></td>
+  </tr>
+  <tr>
+    <td><b>封面</b>：logo、二维码、汇报人、主页全是虚线占位框 —— 用户没提供身份信息时就长这样，不会悄悄用模板作者的。</td>
+    <td><b>论文信息</b>：标题、作者、期刊卷期、DOI 从 PDF 里取。</td>
+  </tr>
+  <tr>
+    <td><img src="assets/Snipaste_2026-07-16_13-42-00.png" width="100%"></td>
+    <td><img src="assets/Snipaste_2026-07-16_13-42-07.png" width="100%"></td>
+  </tr>
+  <tr>
+    <td><b>文献信息</b>（<code>info</code> 版式）：论文首页图 + 期刊/分区/被引信息表 + 一句话结论。绿色是关键术语，红色是核心指标。</td>
+    <td><b>目录分隔页</b>：四条，不是六条 —— 目录讲的是论证的起承转合，不是章节索引。每进入一部分插一张，当前项高亮。</td>
+  </tr>
+  <tr>
+    <td><img src="assets/Snipaste_2026-07-16_13-42-27.png" width="100%"></td>
+    <td><img src="assets/Snipaste_2026-07-16_13-43-04.png" width="100%"></td>
+  </tr>
+  <tr>
+    <td><b>研究背景</b>（<code>tree</code> 版式）：一句论断 → 箭头 → 三个并列分支，讲「现有方法各有什么短板」。这类页一张图都没有，靠结构本身说话。</td>
+    <td><b>结论与不足</b>（<code>proscons</code> 版式）：创新点 / 局限性双色条，局限里连作者自己承认的推理速度、验证范围都点出来。</td>
+  </tr>
+</table>
+
 ## 在 agent 中使用
 
 技能本体就是 `SKILL.md`（一份给 agent 读的操作说明）加 `scripts/` 下的三个 Python 脚本。
