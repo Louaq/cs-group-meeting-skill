@@ -61,6 +61,26 @@ six-section narrative, not a figure-by-figure walkthrough.
 8. **A 提示框 head never wraps.** 结果分析 / 关键设计 / 标注比例 are labels — every
    head shape is sized from its text and has wrapping off, so keep heads to a
    few characters. `check_heads` rejects anything over ~8 CJK chars.
+9. **The 左上角标题 is a takeaway, not a label.** Every content slide's title is a
+   short, declarative statement of what the slide *says* — what the module does,
+   what the result shows — not a bare noun naming the thing on screen. Write
+   「CFE：用模态差异跨引导加权本模态特征」, not 「CFE 相关特征探索单元」;
+   「消融实验：CVBM 与一致性损失各自有效」, not 「消融实验」. Keep it to one line
+   (≈16 CJK chars; the box auto-shrinks a longer one but a title that has to
+   shrink is a title trying to be a sentence). The section-opener slides
+   (研究背景 / 本文贡献 / 结论与不足) may keep their section name.
+10. **Figure and text align on one axis.** In a side-by-side layout the figure
+    must line up with the text beside it, not float half a slide above or below
+    it. `figure_analysis` centres both on the same vertical axis for you; when
+    you place figures yourself, match their vertical centre to the text column's.
+11. **图多字少 — the callout is one centred line, not a paragraph.** A 结果分析 /
+    分析结果 / 小结 callout states the single takeaway (with its key number) in
+    about one line; it renders centred. A multi-sentence callout wraps, balloons
+    the box and shrinks the figure — exactly backwards. `check_analysis_terse`
+    caps each callout line (~32 字 in a `dual` column, ~34 elsewhere) and the
+    number of lines (2 in `dual`, 3 otherwise). Push detail into the figure or a
+    要点; the figure should dominate the slide, so give it the width and height
+    the terse callout frees up.
 
 ## Workflow
 
@@ -126,12 +146,12 @@ entry plus 封面 / 论文信息 / 谢谢大家.
   },
   "slides": [
     {"type": "info", "title": "文献信息", "bullets": ["一句话结论", "..."]},
-    {"type": "bullets", "section": "研究背景", "title": "研究背景",
+    {"type": "bullets", "section": "研究背景", "title": "半监督分割缺的是一致的伪标签",
      "bullets": ["**问题**：...", "..."], "figures": ["fig01.png"],
      "notes": ["Fig. 1 动机"]},
     {"type": "cards", "section": "本文贡献", "title": "本文贡献",
      "cards": [{"lead": "CVBM", "text": "...", "points": ["..."]}]},
-    {"type": "figure_analysis", "section": "研究方法", "title": "总体框架",
+    {"type": "figure_analysis", "section": "研究方法", "title": "CVBM 用体素置信度对齐双分支预测",
      "figures": ["fig07.png"], "figure_side": "right", "figure_width": 7.6,
      "notes": ["Fig. 7 CVBM 框架"],
      "bullets": ["..."], "analysis": ["..."], "analysis_head": "关键设计"},
@@ -192,6 +212,11 @@ replaced, not kept.
 
 ## Writing the talking points
 
+Give every content slide a **declarative title** (non-negotiable 9): 研究方法
+slides say what the module does (「ACF 用跨模态差异重标定特征」), 实验结果 slides
+say what the numbers show (「BraTS 上 DSC 领先次优方法 1.8%」). A title that just
+names the box on screen wastes the one line the audience reads first.
+
 - **研究背景**: the technical problem, why current SOTA falls short, the paper's
   observation. 2–4 bullets, each with one **green key term**.
 - **本文贡献**: one card per contribution, `lead` = the named component.
@@ -200,10 +225,12 @@ replaced, not kept.
   (`Eq.(17)`) next to the claim so the audience can find it. Give the pipeline
   a `process` strip and the loss/framework a `panel` — they are different kinds
   of thing and should not look identical.
-- **实验结果**: 数据集与指标 first, then 对比实验, 可视化, 消融. Each 分析 must name
-  the number that settles it (e.g. `!!DSC 91.19%!! vs BCP 89.62%`) with the
-  winner in red. A table wants `panel`, two datasets want `figure_cards`, two
-  visualisations want `dual`.
+- **实验结果**: 数据集与指标 first, then 对比实验, 可视化, 消融. Each 分析 is one
+  centred line naming the number that settles it (e.g. `!!DSC 91.19%!! vs BCP
+  89.62%`) with the winner in red — not a paragraph restating the table. A table
+  wants `panel`, two datasets want `figure_cards`, two visualisations want
+  `dual`. Blow the figure up: 图多字少 means the reader looks at the picture, not
+  a wall of text beside it.
 - **结论与不足**: contributions plus the limitations the paper admits.
 
 Keep each bullet under ~40 Chinese characters; the 要点框 grows with the bullet
@@ -223,7 +250,12 @@ $pres.Close(); $app.Quit()
 
 Then read every PNG: text inside its box, figures neither stretched nor
 clipped, 共N页 matching the deck, no CJK punctuation at a line start, and no
-slide that is just a picture. Check the red
+slide that is just a picture. A 图注 sits right under its figure (the builder
+hangs it off the image's real bottom edge, not the slot's), so a caption
+stranded in whitespace means the wrong figure or note pairing. On side-by-side
+slides check the figure and the text column share a vertical centre — neither
+should float above or below the other. Confirm each title reads as a takeaway sentence, not a bare label, and
+sits on one line. Check the red
 annotations landed in the figure's whitespace and not across its panels, and
 flip through 研究方法 / 实验结果 as a run — if the pages blur together, the
 layout is still too uniform whatever `check_variety` says.

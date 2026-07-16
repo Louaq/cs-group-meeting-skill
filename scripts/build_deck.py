@@ -254,7 +254,13 @@ def textbox(slide, x, y, w, h, lines, size=20, color=INK, bold_all=False,
 
 
 def slide_title(slide, text: str) -> None:
-    textbox(slide, 0.88, TITLE_Y, 8.0, 0.55, [text], size=24, color=GREEN, bold_all=True)
+    """The 左上角标题: a short declarative takeaway, not just a label naming the
+    module. Auto-shrinks so a fuller statement still lands on one line rather
+    than wrapping or clipping."""
+    w, size = 11.6, 24
+    while size > 16 and text_width(text, size) > w - 0.2:
+        size -= 1
+    textbox(slide, 0.88, TITLE_Y, w, 0.6, [text], size=size, color=GREEN, bold_all=True)
 
 
 def rounded(slide, x, y, w, h, fill=WASH, line=GREEN, radius=0.06):
@@ -348,8 +354,10 @@ def analysis_callout(slide, x, y, w, text, size=20, head='结果分析') -> floa
     tab_w, body_w, h = callout_metrics(w, text, size, head)
     rounded(slide, x, y, w, h, fill=WHITE, line=GREEN)
     chevron(slide, x, y, tab_w, h, head, size=CALLOUT_HEAD_SIZE)
+    # a 总结句 reads as a centred takeaway, not a left-aligned paragraph
     textbox(slide, x + tab_w + 0.15, y + 0.1, body_w, h - 0.2, lines,
-            size=size, anchor=MSO_ANCHOR.MIDDLE, spacing=1.2, space_after=5)
+            size=size, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE,
+            spacing=1.2, space_after=5)
     return y + h
 
 
@@ -395,6 +403,21 @@ def place_figure(slide, spec_fig, x, y, w, h):
            pic.width / 914400, pic.height / 914400)
     if annots:
         annotate(slide, box, annots)
+    return box
+
+
+def figure_with_note(slide, spec_fig, x, y, w, h, note=None, size=15):
+    """Place a figure in its slot and hang its 图注 directly under the *image*.
+
+    fit_picture centres the image inside its slot, so a wide, short figure in a
+    tall slot leaves a band of whitespace below it. Pinning the caption to the
+    slot bottom would strand it far under the figure it names; anchoring it to
+    the image's real bottom edge keeps the two together.
+    """
+    box = place_figure(slide, spec_fig, x, y, w, h)
+    if note:
+        bx, by, bw, bh = box
+        figure_note(slide, bx, by + bh + 0.04, bw, note, size=size)
     return box
 
 
@@ -604,8 +627,8 @@ def build_info(prs, spec, meta, furn) -> None:
     slide_title(slide, spec.get('title', '文献信息'))
     cover = meta.get('cover_page') or meta.get('cover_crop')
     if cover:
-        fit_picture(slide, cover, 0.30, BODY_TOP, 5.9, 5.65)
-        figure_note(slide, 0.30, BODY_TOP + 5.7, 5.9, spec.get('cover_note', '论文首页'))
+        figure_with_note(slide, cover, 0.30, BODY_TOP, 5.9, 5.65,
+                         spec.get('cover_note', '论文首页'))
     rows = list(meta.get('info', {}).items())
     y = BODY_TOP + 0.07
     rounded(slide, 6.55, BODY_TOP, 6.5, 0.42 + 0.62 * len(rows), fill=WASH, line=None)
@@ -635,9 +658,8 @@ def build_bullets(prs, spec, meta, furn) -> None:
     avail_h = BODY_BOTTOM - top - nh
     for i, f in enumerate(figs):
         x = 0.35 + i * (w + gap)
-        place_figure(slide, f, x, top, w, avail_h)
-        if i < len(notes):
-            figure_note(slide, x, top + avail_h + 0.04, w, notes[i])
+        figure_with_note(slide, f, x, top, w, avail_h,
+                         notes[i] if i < len(notes) else None)
 
 
 def build_cards(prs, spec, meta, furn) -> None:
@@ -668,7 +690,9 @@ def build_cards(prs, spec, meta, furn) -> None:
 
 
 def build_figure_analysis(prs, spec, meta, furn) -> None:
-    """Figure on one side, bullets + analysis on the other."""
+    """Figure on one side, bullets + analysis on the other -- both centred on the
+    same vertical axis so the figure lines up with the text instead of floating.
+    """
     slide = blank_slide(prs, furn)
     slide_title(slide, spec['title'])
     figs = spec.get('figures', [])
@@ -679,22 +703,34 @@ def build_figure_analysis(prs, spec, meta, furn) -> None:
     tx = 0.35 if side == 'right' else fx + fw + 0.35
     notes = spec.get('notes', [])
     top, bottom, gap = BODY_TOP, BODY_BOTTOM, 0.2
+    size = spec.get('size', 18)
+
+    # Measure the text column up front so it and the figure share one vertical
+    # centre. fit_picture centres each image in its slot, so a single figure's
+    # centre lands on the body centre; the text is centred to meet it there.
+    th = 0.0
+    if spec.get('bullets'):
+        th += wrapped_height(['• ' + b for b in spec['bullets']], tw - 0.4, size) + 0.34
+    if spec.get('analysis'):
+        ah = callout_metrics(tw, spec['analysis'], size,
+                             spec.get('analysis_head', '结果分析'))[2]
+        th += (0.3 if spec.get('bullets') else 0) + ah
+    ty = top + max(0.0, (bottom - top - th) / 2)
+
     n = max(1, len(figs))
     each = (bottom - top - gap * (n - 1)) / n
     for i, fig in enumerate(figs):
         yy = top + i * (each + gap)
         nh = note_height(notes[i], fw) if i < len(notes) else 0
-        img_h = each - nh                            # the note lives in the slot,
-        place_figure(slide, fig, fx, yy, fw, img_h)  # not in the gap to the next
-        if nh:
-            figure_note(slide, fx, yy + img_h + 0.02, fw, notes[i])
-    y = top
+        img_h = each - nh                                    # room reserved so the
+        figure_with_note(slide, fig, fx, yy, fw, img_h,      # note, hung under the
+                         notes[i] if i < len(notes) else None)  # image, clears the next
+    y = ty
     if spec.get('bullets'):
-        y = bullet_box(slide, tx, y, tw, spec['bullets'], size=spec.get('size', 18)) + 0.3
+        y = bullet_box(slide, tx, y, tw, spec['bullets'], size=size) + 0.3
     if spec.get('analysis'):
         analysis_callout(slide, tx, y, tw, spec['analysis'],
-                         head=spec.get('analysis_head', '结果分析'),
-                         size=spec.get('size', 18))
+                         head=spec.get('analysis_head', '结果分析'), size=size)
 
 
 def build_numbered(prs, spec, meta, furn) -> None:
@@ -782,9 +818,8 @@ def build_process(prs, spec, meta, furn) -> None:
         x = 0.35 + i * (w + gap)
         nh = note_height(notes[i], w) if i < len(notes) else 0
         fh = bottom - top - nh
-        place_figure(slide, fig, x, top, w, fh)
-        if nh:
-            figure_note(slide, x, top + fh + 0.02, w, notes[i])
+        figure_with_note(slide, fig, x, top, w, fh,
+                         notes[i] if i < len(notes) else None)
     y = 6.9 - strip_h
     head = spec.get('steps_head', '流程')
     tab_w = max(1.5, chevron_width(head))
@@ -877,9 +912,8 @@ def build_panel(prs, spec, meta, furn) -> None:
         x = 0.35 + i * (w + gap)
         nh = note_height(notes[i], w) if i < len(notes) else 0
         fh = bottom - top - nh
-        place_figure(slide, fig, x, top, w, fh)
-        if nh:
-            figure_note(slide, x, top + fh + 0.02, w, notes[i])
+        figure_with_note(slide, fig, x, top, w, fh,
+                         notes[i] if i < len(notes) else None)
     rounded(slide, px, top, pw, bottom - top, fill=WHITE, line=GREEN, radius=0.05)
     pill(slide, px + 0.35, top + 0.25, pw - 0.7, 0.52,
          spec.get('panel_head', '结果分析'))
@@ -946,9 +980,7 @@ def build_dual(prs, spec, meta, furn) -> None:
         x = 0.35 + i * (w + gap)
         nh = note_height(p['note'], w) if p.get('note') else 0
         fh = cy - 0.25 - top - nh
-        place_figure(slide, p['figure'], x, top, w, fh)
-        if nh:
-            figure_note(slide, x, top + fh + 0.02, w, p['note'])
+        figure_with_note(slide, p['figure'], x, top, w, fh, p.get('note'))
         analysis_callout(slide, x, cy, w, p['analysis'],
                          head=p.get('head', '分析结果'), size=size)
 
@@ -1059,6 +1091,43 @@ def check_heads(spec) -> None:
             check(p.get('head'), f'slide {i} panel head')
 
 
+# A 总结/分析 callout is a one-line takeaway, not a paragraph. These are the
+# rendered CJK-equivalent character budgets per callout line, chosen so a number
+# plus its comparison fits but a sentence that would wrap several times does not
+# -- a long line balloons the box and shrinks the figure it sits under. Narrow
+# side-by-side columns (dual) get the tightest budget.
+ANALYSIS_BUDGET = {'dual': 32, 'figure_analysis': 34, 'cards': 40}
+ANALYSIS_MAX_LINES = {'dual': 2, 'figure_analysis': 3, 'cards': 3}
+
+
+def check_analysis_terse(spec) -> None:
+    """Keep 总结句 to about one line so a callout box cannot balloon past its
+    figure. 图多字少: the figure carries the detail, the callout the takeaway."""
+    def blocks(s):
+        if s.get('type') == 'dual':
+            for p in s.get('panels', []):
+                a = p.get('analysis')
+                yield (a if isinstance(a, list) else [a]) if a else []
+        else:
+            a = s.get('analysis')
+            yield (a if isinstance(a, list) else [a]) if a else []
+
+    for i, s in enumerate(spec['slides'], 1):
+        t = s.get('type')
+        budget = ANALYSIS_BUDGET.get(t)
+        if not budget:
+            continue
+        for callout in blocks(s):
+            if len(callout) > ANALYSIS_MAX_LINES[t]:
+                fail(f"slide {i} ({s.get('title')!r}): 分析框有 {len(callout)} 行 -- "
+                     f"最多 {ANALYSIS_MAX_LINES[t]} 行，图多字少，把细节留给图")
+            for line in callout:
+                if line and text_width(str(line), 72) > budget:
+                    fail(f"slide {i} ({s.get('title')!r}): 分析句 {line!r} 约 "
+                         f"{text_width(str(line), 72):.0f} 字，超过 ~{budget} 字一行 -- "
+                         f"总结句控制在一行、居中，细节交给图或拆成要点")
+
+
 def check_math(spec) -> None:
     """Reject bad LaTeX up front rather than half way through a build."""
     def walk(node):
@@ -1164,6 +1233,7 @@ def main(argv=None) -> None:
     check_variety(spec)
     check_emphasis(spec)
     check_heads(spec)
+    check_analysis_terse(spec)
     check_math(spec)
 
     prs = Presentation(args.template)
