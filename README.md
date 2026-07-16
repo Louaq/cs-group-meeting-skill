@@ -1,4 +1,5 @@
 # cs-group-meeting-skill
+![logo](assets/logo.png)
 
 <p align="center"><i>English version: <b><a href="README.en.md">README.en.md</a></b> ｜ 中文（当前）</i></p>
 
